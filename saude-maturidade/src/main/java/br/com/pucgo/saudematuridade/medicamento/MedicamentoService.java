@@ -1,9 +1,12 @@
 package br.com.pucgo.saudematuridade.medicamento;
 
+import br.com.pucgo.saudematuridade.exception.RecursoNaoEncontradoException;
+import br.com.pucgo.saudematuridade.exception.RegraDeNegocioException;
 import br.com.pucgo.saudematuridade.medicamento.dto.MedicamentoRequest;
 import br.com.pucgo.saudematuridade.medicamento.dto.MedicamentoResponse;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -40,16 +43,14 @@ public class MedicamentoService {
     }
 
     public MedicamentoResponse buscarPorId(Long id) {
-        Medicamento medicamento = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Medicamento não encontrado com id: " + id));
+        Medicamento medicamento = buscarEntidadePorId(id);
         return MedicamentoResponse.fromEntity(medicamento);
     }
 
     public MedicamentoResponse atualizar(Long id, MedicamentoRequest request) {
         validarDatas(request.dataInicio(), request.dataFim());
 
-        Medicamento medicamento = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Medicamento não encontrado com id: " + id));
+        Medicamento medicamento = buscarEntidadePorId(id);
 
         medicamento.setNome(request.nome());
         medicamento.setDosagem(request.dosagem());
@@ -65,14 +66,19 @@ public class MedicamentoService {
 
     public void deletar(Long id) {
         if (!repository.existsById(id)) {
-            throw new RuntimeException("Medicamento não encontrado com id: " + id);
+            throw new RecursoNaoEncontradoException("Medicamento não encontrado com id: " + id);
         }
         repository.deleteById(id);
     }
 
-    private void validarDatas(java.time.LocalDate dataInicio, java.time.LocalDate dataFim) {
+    private Medicamento buscarEntidadePorId(Long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Medicamento não encontrado com id: " + id));
+    }
+
+    private void validarDatas(LocalDate dataInicio, LocalDate dataFim) {
         if (dataFim != null && dataFim.isBefore(dataInicio)) {
-            throw new IllegalArgumentException("A data de fim não pode ser anterior à data de início");
+            throw new RegraDeNegocioException("A data de fim não pode ser anterior à data de início");
         }
     }
 }
