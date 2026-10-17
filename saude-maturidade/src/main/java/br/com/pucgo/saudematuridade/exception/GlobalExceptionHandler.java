@@ -15,8 +15,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@RestControllerAdvice
+@RestControllerAdvice(basePackages = "br.com.pucgo.saudematuridade")
 public class GlobalExceptionHandler {
+
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(RecursoNaoEncontradoException.class)
     public ResponseEntity<ErroResposta> tratarRecursoNaoEncontrado(
@@ -125,7 +127,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErroResposta> tratarErroGenerico(
             Exception ex,
             HttpServletRequest request
-    ) {
+    )
+    {
+        logger.error("Erro não tratado em {}: {}", request.getRequestURI(), ex.getMessage(), ex);
         ErroResposta erro = ErroResposta.simples(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 "Erro interno",
