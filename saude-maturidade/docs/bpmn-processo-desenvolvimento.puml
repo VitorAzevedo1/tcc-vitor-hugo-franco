@@ -1,0 +1,57 @@
+@startuml BPMN - Processo de Desenvolvimento
+
+skinparam backgroundColor White
+skinparam defaultFontName Arial
+skinparam ActivityBackgroundColor #E8F0F8
+skinparam ActivityBorderColor #2F5496
+skinparam ActivityDiamondBackgroundColor #FFF4CC
+skinparam ActivityDiamondBorderColor #B38F00
+skinparam ArrowColor #2F5496
+skinparam PartitionBackgroundColor White
+skinparam PartitionBorderColor #2F5496
+
+title Processo de Desenvolvimento do TCC\nScrum Adaptado com Sprints e Revisao Semanal
+
+|Aluno (Autor)|
+start
+:Levantar e priorizar o backlog inicial\n(RF, RNF, RN e artefatos);
+:Definir cronograma geral\n(entregas quinzenais com orientador);
+
+repeat
+    partition "Sprint Semanal" {
+        :**Sprint Planning**\nSelecionar itens do backlog\npara a semana (segunda-feira);
+        :**Desenvolvimento Diario**\n- Implementar codigo (backend/frontend)\n- Produzir artefatos (diagramas, documentos)\n- Realizar testes locais\n- Commit frequente no GitHub;
+
+        note right
+            Autoavaliacao diaria substitui
+            a daily do Scrum classico
+            (projeto de autor unico).
+        end note
+
+        :**Teste e Validacao Local**\nValidar funcionalidades implementadas\nvia Postman, Swagger e MySQL Workbench;
+
+        if (Entregaveis prontos para revisao?) then (sim)
+
+            |Orientador|
+            :**Reuniao Semanal de Revisao**\nAvaliar entregas da sprint\n(codigo, artefatos, documentacao);
+            :Fornecer feedback\n(ajustes, correcoes, novos requisitos);
+
+            |Aluno (Autor)|
+            :**Retrospectiva da Sprint**\n- Atualizar backlog\n- Registrar aprendizados\n- Replanejar escopo se necessario;
+        else (nao)
+            :Replanejar a sprint\ne reagendar entrega;
+        endif
+    }
+repeat while (Existem itens pendentes\nno backlog do TCC?) is (sim)
+->nao;
+
+:**Preparar Entrega Consolidada**\n- Revisar documentacao final\n- Gerar diagramas finais\n- Publicar versao no GitHub\n- Preparar apresentacao;
+
+|Orientador|
+:**Avaliacao Final**\nValidacao da entrega para\nbanca examinadora;
+
+|Aluno (Autor)|
+:**Defesa do TCC**;
+stop
+
+@enduml

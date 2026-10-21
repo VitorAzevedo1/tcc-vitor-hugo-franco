@@ -1,0 +1,117 @@
+@startuml Diagrama de Classes - Entidades JPA
+
+skinparam class {
+    BackgroundColor White
+    BorderColor #2F5496
+    ArrowColor #2F5496
+    FontName Arial
+}
+
+skinparam enum {
+    BackgroundColor #E8F0F8
+    BorderColor #2F5496
+}
+
+skinparam classAttributeIconSize 0
+
+title Sistema de Organização de Informações de Saúde Pessoal na Maturidade\nDiagrama de Classes - Entidades JPA
+
+package "medicamento" {
+    class Medicamento {
+        - id : Long
+        - nome : String
+        - dosagem : String
+        - frequencia : String
+        - viaAdministracao : String
+        - dataInicio : LocalDate
+        - dataFim : LocalDate
+        - observacoes : String
+    }
+}
+
+package "alergia" {
+    class Alergia {
+        - id : Long
+        - substancia : String
+        - tipo : TipoAlergia
+        - gravidade : GravidadeAlergia
+        - reacao : String
+        - dataDescoberta : LocalDate
+        - observacoes : String
+    }
+
+    enum TipoAlergia {
+        MEDICAMENTO
+        ALIMENTO
+        AMBIENTAL
+        OUTRO
+    }
+
+    enum GravidadeAlergia {
+        LEVE
+        MODERADA
+        GRAVE
+    }
+}
+
+package "contatomedico" {
+    class ContatoMedico {
+        - id : Long
+        - nome : String
+        - especialidade : String
+        - telefone : String
+        - email : String
+        - crm : String
+        - localAtendimento : String
+        - endereco : String
+        - observacoes : String
+    }
+}
+
+package "consulta" {
+    class Consulta {
+        - id : Long
+        - dataHora : LocalDateTime
+        - medico : String
+        - especialidade : String
+        - local : String
+        - motivo : String
+        - diagnostico : String
+        - prescricao : String
+        - observacoes : String
+    }
+}
+
+package "observacaopessoal" {
+    class ObservacaoPessoal {
+        - id : Long
+        - titulo : String
+        - descricao : String
+        - dataHora : LocalDateTime
+        - categoria : CategoriaObservacao
+    }
+
+    enum CategoriaObservacao {
+        SINTOMA
+        MEDICACAO
+        HUMOR
+        ATIVIDADE_FISICA
+        ALIMENTACAO
+        SONO
+        OUTRO
+    }
+}
+
+Alergia --> TipoAlergia
+Alergia --> GravidadeAlergia
+ObservacaoPessoal --> CategoriaObservacao
+
+note bottom
+    Entidades implementadas como classes JPA (@Entity), com Lombok
+    (@Getter, @Setter, @NoArgsConstructor, @AllArgsConstructor).
+    Nesta versão, as entidades estão desacopladas, sem relacionamentos
+    entre si. A entidade Usuario e as associações @ManyToOne estão
+    planejadas para a próxima iteração do projeto.
+end note
+
+@enduml

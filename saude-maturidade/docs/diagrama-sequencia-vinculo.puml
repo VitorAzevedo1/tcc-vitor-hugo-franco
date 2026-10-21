@@ -1,0 +1,111 @@
+@startuml Diagrama de Sequencia - Vinculo Idoso-Familiar
+
+skinparam sequence {
+    ArrowColor #2F5496
+    LifeLineBorderColor #2F5496
+    ParticipantBorderColor #2F5496
+    ParticipantBackgroundColor #E8F0F8
+    ActorBorderColor #2F5496
+    ActorBackgroundColor #E8F0F8
+}
+
+title Diagrama de Sequencia — Vinculo entre Pessoa Idosa e Familiar Autorizado\nSistema de Organizacao de Informacoes de Saude Pessoal na Maturidade
+
+actor "Pessoa Idosa" as idoso
+actor "Familiar\nAutorizado" as familiar
+participant "Cliente" as client
+participant "ConviteController" as conviteCtrl
+participant "ConviteService" as conviteSvc
+participant "VinculoService" as vinculoSvc
+participant "EmailService" as email
+database "MySQL" as db
+
+== Envio do convite ==
+
+idoso -> client : Preenche e-mail do familiar\ne confirma envio
+activate client
+
+client -> conviteCtrl : POST /api/convites\n{ emailDestinatario }
+activate conviteCtrl
+
+conviteCtrl -> conviteSvc : criarConvite(idosoId, emailDestinatario)
+activate conviteSvc
+
+conviteSvc -> db : Verifica se ja existe\nconvite ou vinculo ativo
+activate db
+db --> conviteSvc : nenhum encontrado
+deactivate db
+
+conviteSvc -> db : INSERT INTO convite\n(idoso_id, email, status='PENDENTE', data_envio)
+activate db
+db --> conviteSvc : conviteId gerado
+deactivate db
+
+conviteSvc -> email : enviarConvite(emailDestinatario, link)
+activate email
+email --> conviteSvc : enviado
+deactivate email
+
+conviteSvc --> conviteCtrl : ConviteResponse
+deactivate conviteSvc
+
+conviteCtrl --> client : 201 Created\n{ conviteId, status: PENDENTE }
+deactivate conviteCtrl
+
+client --> idoso : Confirma envio do convite
+deactivate client
+
+== Aceite do convite ==
+
+familiar -> client : Acessa link do convite\ne realiza autenticacao
+activate client
+
+client -> conviteCtrl : POST /api/convites/{id}/aceitar
+activate conviteCtrl
+
+conviteCtrl -> conviteSvc : aceitarConvite(conviteId, familiarId)
+activate conviteSvc
+
+conviteSvc -> db : SELECT convite\nWHERE id = ? AND status = 'PENDENTE'
+activate db
+db --> conviteSvc : convite valido
+deactivate db
+
+alt Convite valido
+    conviteSvc -> db : UPDATE convite\nSET status='ACEITO', data_aceite=NOW()
+    activate db
+    db --> conviteSvc : ok
+    deactivate db
+
+    conviteSvc -> vinculoSvc : criarVinculo(idosoId, familiarId)
+    activate vinculoSvc
+
+    vinculoSvc -> db : INSERT INTO vinculo\n(idoso_id, familiar_id, status='ATIVO')
+    activate db
+    db --> vinculoSvc : vinculoId
+    deactivate db
+
+    vinculoSvc --> conviteSvc : Vinculo criado
+    deactivate vinculoSvc
+
+    conviteSvc -> email : notificarIdoso(idosoId, "Convite aceito")
+    activate email
+    email --> conviteSvc : enviado
+    deactivate email
+
+    conviteSvc --> conviteCtrl : VinculoResponse
+    deactivate conviteSvc
+
+    conviteCtrl --> client : 200 OK\n{ vinculoId, status: ATIVO }
+    deactivate conviteCtrl
+
+    client --> familiar : Acesso as informacoes\nda pessoa idosa liberado
+    deactivate client
+
+else Convite expirado ou ja aceito
+    conviteSvc --> conviteCtrl : exception
+    conviteCtrl --> client : 400 Bad Request
+    client --> familiar : Exibe mensagem de erro
+end
+
+@enduml

@@ -1,0 +1,17 @@
+@startuml C4 Nivel 1 - Contexto do Sistema
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+LAYOUT_WITH_LEGEND()
+title Diagrama de Contexto (C4 - Nivel 1)\nSistema de Organizacao de Informacoes de Saude Pessoal na Maturidade
+
+Person(idoso, "Pessoa Idosa", "Usuario principal. Registra, consulta e organiza suas informacoes pessoais de saude (medicamentos, alergias, contatos medicos, consultas e observacoes).")
+
+Person(familiar, "Familiar Autorizado", "Pessoa de confianca convidada pela pessoa idosa. Consulta as informacoes de saude compartilhadas apos aceite do vinculo.")
+
+System(sistema, "Sistema de Organizacao de Informacoes de Saude", "Plataforma multiplataforma (web e mobile) para registro, consulta e compartilhamento controlado de informacoes pessoais de saude da pessoa idosa.")
+
+Rel(idoso, sistema, "Registra e consulta informacoes de saude; envia convites de vinculo", "HTTPS")
+Rel(familiar, sistema, "Consulta informacoes de saude compartilhadas; aceita convite de vinculo", "HTTPS")
+
+@enduml

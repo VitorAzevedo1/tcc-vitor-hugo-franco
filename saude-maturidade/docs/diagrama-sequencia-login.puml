@@ -1,0 +1,72 @@
+@startuml Diagrama de Sequencia - Login com JWT
+
+skinparam sequence {
+    ArrowColor #2F5496
+    LifeLineBorderColor #2F5496
+    ParticipantBorderColor #2F5496
+    ParticipantBackgroundColor #E8F0F8
+    ActorBorderColor #2F5496
+    ActorBackgroundColor #E8F0F8
+}
+
+title Diagrama de Sequencia — Login com JWT\nSistema de Organizacao de Informacoes de Saude Pessoal na Maturidade
+
+actor "Usuario" as user
+participant "Cliente\n(React Native / Web)" as client
+participant "AuthController\n(Spring Boot)" as controller
+participant "AuthService" as service
+participant "UsuarioRepository\n(Spring Data JPA)" as repo
+participant "PasswordEncoder\n(BCrypt)" as bcrypt
+participant "JwtService" as jwt
+database "MySQL\n(saude_maturidade)" as db
+
+user -> client : Preenche e-mail e senha
+activate client
+
+client -> controller : POST /api/auth/login\n{ email, senha }
+activate controller
+
+controller -> service : autenticar(credenciais)
+activate service
+
+service -> repo : findByEmail(email)
+activate repo
+
+repo -> db : SELECT * FROM usuario\nWHERE email = ?
+activate db
+db --> repo : usuario (hash BCrypt)
+deactivate db
+
+repo --> service : Optional<Usuario>
+deactivate repo
+
+alt Usuario encontrado
+    service -> bcrypt : matches(senhaInformada, hashArmazenado)
+    activate bcrypt
+    bcrypt --> service : true
+    deactivate bcrypt
+
+    service -> jwt : gerarToken(usuario)
+    activate jwt
+    jwt --> service : token JWT
+    deactivate jwt
+
+    service --> controller : AuthResponse(token, perfil)
+    deactivate service
+
+    controller --> client : 200 OK\n{ token, perfil }
+    deactivate controller
+
+    client -> client : Armazena token\n(SecureStorage)
+
+    client --> user : Redireciona para\ntela inicial
+    deactivate client
+
+else Credenciais invalidas
+    service -> service : Lanca RecursoNaoEncontradoException\nou CredenciaisInvalidasException
+    service --> controller : exception
+    controller --> client : 401 Unauthorized\n{ erro: "Credenciais invalidas" }
+    client --> user : Exibe mensagem de erro
+end
+
+@enduml

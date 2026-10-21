@@ -1,0 +1,35 @@
+@startuml C4 Nivel 2 - Conteineres
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+title Diagrama de Conteineres (C4 - Nivel 2)\nSistema de Organizacao de Informacoes de Saude Pessoal na Maturidade
+
+Person(idoso, "Pessoa Idosa", "Usuario principal do sistema.")
+Person(familiar, "Familiar Autorizado", "Consulta informacoes compartilhadas apos aceite de vinculo.")
+
+System_Boundary(sistema, "Sistema de Organizacao de Informacoes de Saude") {
+
+    Container(mobile, "Aplicativo Mobile", "React Native", "Interface mobile (Android/iOS) para registro, consulta e compartilhamento de informacoes de saude.")
+
+    Container(web, "Aplicacao Web", "React Native Web", "Interface web para registro, consulta e compartilhamento de informacoes de saude.")
+
+    Container(api, "API REST", "Java 21, Spring Boot 4.1", "Fornece os servicos de autenticacao, cadastro, consulta e compartilhamento de informacoes de saude. Expoe documentacao via OpenAPI/Swagger.")
+
+    ContainerDb(banco, "Banco de Dados", "MySQL 8", "Armazena usuarios, informacoes de saude (medicamentos, alergias, contatos medicos, consultas e observacoes pessoais) e vinculos entre pessoa idosa e familiar autorizado.")
+
+    Container(swagger, "Documentacao da API", "springdoc-openapi (Swagger UI)", "Interface web que documenta e permite testar os endpoints da API REST.")
+}
+
+Rel(idoso, mobile, "Usa", "HTTPS")
+Rel(idoso, web, "Usa", "HTTPS")
+Rel(familiar, mobile, "Usa", "HTTPS")
+Rel(familiar, web, "Usa", "HTTPS")
+
+Rel(mobile, api, "Faz requisicoes a", "JSON/HTTPS")
+Rel(web, api, "Faz requisicoes a", "JSON/HTTPS")
+
+Rel(api, banco, "Le e escreve dados", "JDBC/TCP")
+Rel(swagger, api, "Documenta os endpoints de", "HTTP")
+
+@enduml
