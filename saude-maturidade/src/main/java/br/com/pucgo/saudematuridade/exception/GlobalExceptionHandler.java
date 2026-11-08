@@ -1,5 +1,6 @@
 package br.com.pucgo.saudematuridade.exception;
 
+import br.com.pucgo.saudematuridade.exception.AcessoNegadoException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -32,6 +33,20 @@ public class GlobalExceptionHandler {
                 request.getRequestURI()
         );
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(erro);
+    }
+
+    @ExceptionHandler(AcessoNegadoException.class)
+    public ResponseEntity<ErroResposta> tratarAcessoNegado(
+            AcessoNegadoException ex,
+            HttpServletRequest request
+    ) {
+        ErroResposta erro = ErroResposta.simples(
+                HttpStatus.FORBIDDEN.value(),
+                "Acesso negado",
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(erro);
     }
 
     @ExceptionHandler(RegraDeNegocioException.class)

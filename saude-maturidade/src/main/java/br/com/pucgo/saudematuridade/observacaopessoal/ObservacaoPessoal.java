@@ -1,5 +1,6 @@
 package br.com.pucgo.saudematuridade.observacaopessoal;
 
+import br.com.pucgo.saudematuridade.usuario.Usuario;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,6 +20,10 @@ public class ObservacaoPessoal {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "usuario_id", nullable = false)
+    private Usuario usuario;
 
     @Column(nullable = false, length = 150)
     private String titulo;

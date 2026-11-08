@@ -1,8 +1,10 @@
 package br.com.pucgo.saudematuridade.consulta;
 
+import br.com.pucgo.saudematuridade.auth.UsuarioAutenticadoService;
 import br.com.pucgo.saudematuridade.consulta.dto.ConsultaRequest;
 import br.com.pucgo.saudematuridade.consulta.dto.ConsultaResponse;
 import br.com.pucgo.saudematuridade.exception.RecursoNaoEncontradoException;
+import br.com.pucgo.saudematuridade.usuario.Usuario;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -11,41 +13,46 @@ import java.util.List;
 public class ConsultaService {
 
     private final ConsultaRepository repository;
+    private final UsuarioAutenticadoService usuarioAutenticadoService;
 
-    public ConsultaService(ConsultaRepository repository) {
+    public ConsultaService(ConsultaRepository repository,
+                           UsuarioAutenticadoService usuarioAutenticadoService) {
         this.repository = repository;
+        this.usuarioAutenticadoService = usuarioAutenticadoService;
     }
 
     public ConsultaResponse criar(ConsultaRequest request) {
-        Consulta consulta = new Consulta(
-                null,
-                request.dataHora(),
-                request.medico(),
-                request.especialidade(),
-                request.local(),
-                request.motivo(),
-                request.diagnostico(),
-                request.prescricao(),
-                request.observacoes()
-        );
+        Usuario autenticado = usuarioAutenticadoService.getUsuarioAutenticado();
+
+        Consulta consulta = new Consulta();
+        consulta.setUsuario(autenticado);
+        consulta.setDataHora(request.dataHora());
+        consulta.setMedico(request.medico());
+        consulta.setEspecialidade(request.especialidade());
+        consulta.setLocal(request.local());
+        consulta.setMotivo(request.motivo());
+        consulta.setDiagnostico(request.diagnostico());
+        consulta.setPrescricao(request.prescricao());
+        consulta.setObservacoes(request.observacoes());
 
         Consulta salva = repository.save(consulta);
         return ConsultaResponse.fromEntity(salva);
     }
 
     public List<ConsultaResponse> listar() {
-        return repository.findAll().stream()
+        Usuario autenticado = usuarioAutenticadoService.getUsuarioAutenticado();
+        return repository.findAllByUsuario(autenticado).stream()
                 .map(ConsultaResponse::fromEntity)
                 .toList();
     }
 
     public ConsultaResponse buscarPorId(Long id) {
-        Consulta consulta = buscarEntidadePorId(id);
+        Consulta consulta = buscarEntidadePorIdDoUsuario(id);
         return ConsultaResponse.fromEntity(consulta);
     }
 
     public ConsultaResponse atualizar(Long id, ConsultaRequest request) {
-        Consulta consulta = buscarEntidadePorId(id);
+        Consulta consulta = buscarEntidadePorIdDoUsuario(id);
 
         consulta.setDataHora(request.dataHora());
         consulta.setMedico(request.medico());
@@ -61,14 +68,16 @@ public class ConsultaService {
     }
 
     public void deletar(Long id) {
-        if (!repository.existsById(id)) {
+        Usuario autenticado = usuarioAutenticadoService.getUsuarioAutenticado();
+        if (!repository.existsByIdAndUsuario(id, autenticado)) {
             throw new RecursoNaoEncontradoException("Consulta não encontrada com id: " + id);
         }
         repository.deleteById(id);
     }
 
-    private Consulta buscarEntidadePorId(Long id) {
-        return repository.findById(id)
+    private Consulta buscarEntidadePorIdDoUsuario(Long id) {
+        Usuario autenticado = usuarioAutenticadoService.getUsuarioAutenticado();
+        return repository.findByIdAndUsuario(id, autenticado)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Consulta não encontrada com id: " + id));
     }
 }

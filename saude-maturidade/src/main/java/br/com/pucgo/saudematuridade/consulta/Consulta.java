@@ -1,5 +1,6 @@
 package br.com.pucgo.saudematuridade.consulta;
 
+import br.com.pucgo.saudematuridade.usuario.Usuario;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,6 +20,10 @@ public class Consulta {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "usuario_id", nullable = false)
+    private Usuario usuario;
 
     @Column(name = "data_hora", nullable = false)
     private LocalDateTime dataHora;

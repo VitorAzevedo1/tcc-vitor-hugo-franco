@@ -1,5 +1,6 @@
 package br.com.pucgo.saudematuridade.contatomedico;
 
+import br.com.pucgo.saudematuridade.usuario.Usuario;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,6 +18,10 @@ public class ContatoMedico {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "usuario_id", nullable = false)
+    private Usuario usuario;
 
     @Column(nullable = false, length = 150)
     private String nome;
