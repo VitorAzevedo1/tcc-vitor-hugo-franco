@@ -5,113 +5,192 @@ skinparam class {
     BorderColor #2F5496
     ArrowColor #2F5496
     FontName Arial
+    FontSize 11
+    AttributeFontSize 10
+    StereotypeFontSize 9
 }
-
 skinparam enum {
     BackgroundColor #E8F0F8
     BorderColor #2F5496
+    FontSize 11
+    AttributeFontSize 10
 }
-
 skinparam classAttributeIconSize 0
+skinparam nodesep 25
+skinparam ranksep 40
+hide circle
 
-title Sistema de Organização de Informações de Saúde Pessoal na Maturidade\nDiagrama de Classes - Entidades JPA
+title Sistema de Organizacao de Informacoes de Saude Pessoal na Maturidade\nDiagrama de Classes - Entidades JPA
 
-package "medicamento" {
-    class Medicamento {
-        - id : Long
-        - nome : String
-        - dosagem : String
-        - frequencia : String
-        - viaAdministracao : String
-        - dataInicio : LocalDate
-        - dataFim : LocalDate
-        - observacoes : String
-    }
+' ===================== CLASSES =====================
+
+class Usuario <<usuario>> {
+    - id : Long
+    - nome : String
+    - email : String {unique}
+    - senhaHash : String
+    - perfil : PerfilUsuario
+    - dataCadastro : LocalDateTime
 }
 
-package "alergia" {
-    class Alergia {
-        - id : Long
-        - substancia : String
-        - tipo : TipoAlergia
-        - gravidade : GravidadeAlergia
-        - reacao : String
-        - dataDescoberta : LocalDate
-        - observacoes : String
-    }
-
-    enum TipoAlergia {
-        MEDICAMENTO
-        ALIMENTO
-        AMBIENTAL
-        OUTRO
-    }
-
-    enum GravidadeAlergia {
-        LEVE
-        MODERADA
-        GRAVE
-    }
+enum PerfilUsuario {
+    PESSOA_IDOSA
+    FAMILIAR_AUTORIZADO
 }
 
-package "contatomedico" {
-    class ContatoMedico {
-        - id : Long
-        - nome : String
-        - especialidade : String
-        - telefone : String
-        - email : String
-        - crm : String
-        - localAtendimento : String
-        - endereco : String
-        - observacoes : String
-    }
+class Medicamento <<medicamento>> {
+    - id : Long
+    - usuario : Usuario
+    - nome : String
+    - dosagem : String
+    - frequencia : String
+    - viaAdministracao : String
+    - dataInicio : LocalDate
+    - dataFim : LocalDate
+    - observacoes : String
 }
 
-package "consulta" {
-    class Consulta {
-        - id : Long
-        - dataHora : LocalDateTime
-        - medico : String
-        - especialidade : String
-        - local : String
-        - motivo : String
-        - diagnostico : String
-        - prescricao : String
-        - observacoes : String
-    }
+class Alergia <<alergia>> {
+    - id : Long
+    - usuario : Usuario
+    - substancia : String
+    - tipo : TipoAlergia
+    - gravidade : GravidadeAlergia
+    - reacao : String
+    - dataDescoberta : LocalDate
+    - observacoes : String
 }
 
-package "observacaopessoal" {
-    class ObservacaoPessoal {
-        - id : Long
-        - titulo : String
-        - descricao : String
-        - dataHora : LocalDateTime
-        - categoria : CategoriaObservacao
-    }
-
-    enum CategoriaObservacao {
-        SINTOMA
-        MEDICACAO
-        HUMOR
-        ATIVIDADE_FISICA
-        ALIMENTACAO
-        SONO
-        OUTRO
-    }
+enum TipoAlergia {
+    MEDICAMENTO
+    ALIMENTO
+    AMBIENTAL
+    OUTRO
 }
 
-Alergia --> TipoAlergia
-Alergia --> GravidadeAlergia
-ObservacaoPessoal --> CategoriaObservacao
+enum GravidadeAlergia {
+    LEVE
+    MODERADA
+    GRAVE
+}
 
-note bottom
-    Entidades implementadas como classes JPA (@Entity), com Lombok
-    (@Getter, @Setter, @NoArgsConstructor, @AllArgsConstructor).
-    Nesta versão, as entidades estão desacopladas, sem relacionamentos
-    entre si. A entidade Usuario e as associações @ManyToOne estão
-    planejadas para a próxima iteração do projeto.
+class ContatoMedico <<contatomedico>> {
+    - id : Long
+    - usuario : Usuario
+    - nome : String
+    - especialidade : String
+    - telefone : String
+    - email : String
+    - crm : String
+    - localAtendimento : String
+    - endereco : String
+    - observacoes : String
+}
+
+class Consulta <<consulta>> {
+    - id : Long
+    - usuario : Usuario
+    - dataHora : LocalDateTime
+    - medico : String
+    - especialidade : String
+    - local : String
+    - motivo : String
+    - diagnostico : String
+    - prescricao : String
+    - observacoes : String
+}
+
+class ObservacaoPessoal <<observacaopessoal>> {
+    - id : Long
+    - usuario : Usuario
+    - titulo : String
+    - descricao : String
+    - dataHora : LocalDateTime
+    - categoria : CategoriaObservacao
+}
+
+enum CategoriaObservacao {
+    SINTOMA
+    MEDICACAO
+    HUMOR
+    ATIVIDADE_FISICA
+    ALIMENTACAO
+    SONO
+    OUTRO
+}
+
+class Convite <<convite>> {
+    - id : Long
+    - codigo : String {unique}
+    - idoso : Usuario
+    - status : ConviteStatus
+    - dataGeracao : LocalDateTime
+    - dataExpiracao : LocalDateTime
+    - dataUtilizacao : LocalDateTime
+}
+
+enum ConviteStatus {
+    PENDENTE
+    UTILIZADO
+    EXPIRADO
+}
+
+class Vinculo <<vinculo>> {
+    - id : Long
+    - idoso : Usuario
+    - familiar : Usuario
+    - status : VinculoStatus
+    - dataVinculo : LocalDateTime
+    - dataRevogacao : LocalDateTime
+}
+
+enum VinculoStatus {
+    ATIVO
+    REVOGADO
+}
+
+' ===================== LAYOUT (links invisiveis) =====================
+
+Usuario -[hidden]right- PerfilUsuario
+
+Usuario -[hidden]down- Medicamento
+Medicamento -[hidden]right- Alergia
+Alergia -[hidden]right- ContatoMedico
+
+Medicamento -[hidden]down- Consulta
+Consulta -[hidden]right- ObservacaoPessoal
+ObservacaoPessoal -[hidden]right- Convite
+
+Consulta -[hidden]down- Vinculo
+Alergia -[hidden]down- TipoAlergia
+TipoAlergia -[hidden]right- GravidadeAlergia
+
+ObservacaoPessoal -[hidden]down- CategoriaObservacao
+Convite -[hidden]down- ConviteStatus
+Vinculo -[hidden]right- VinculoStatus
+
+' ===================== ASSOCIACOES =====================
+
+Usuario "1" --> "0..*" Medicamento : possui
+Usuario "1" --> "0..*" Alergia : possui
+Usuario "1" --> "0..*" ContatoMedico : possui
+Usuario "1" --> "0..*" Consulta : possui
+Usuario "1" --> "0..*" ObservacaoPessoal : possui
+Usuario "1" --> "0..*" Convite : gera
+Usuario "1" --> "0..*" Vinculo : compartilha
+Usuario "1" --> "0..*" Vinculo : acessa
+
+Usuario ..> PerfilUsuario
+Alergia ..> TipoAlergia
+Alergia ..> GravidadeAlergia
+ObservacaoPessoal ..> CategoriaObservacao
+Convite ..> ConviteStatus
+Vinculo ..> VinculoStatus
+
+note bottom of Usuario
+  Entidade central do modelo. Toda informacao de saude
+  pertence a um usuario, e o acesso e sempre filtrado
+  pelo usuario autenticado no token JWT.
 end note
 
 @enduml
